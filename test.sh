@@ -42,8 +42,8 @@ RESULTS=()
 for DIR_PHASE in programs/*/
 do
 	PHASE=$(basename $DIR_PHASE)
-	PHASE="${PHASE^}"
 	MODE=${PHASE#*+}
+	PHASE="${PHASE^}"
 
 	for DIR_TYPE in $DIR_PHASE*/
 	do
@@ -59,7 +59,7 @@ do
 			CONF_OUTPUT="Error: "
 		fi
 
-		if [ "$(ls -A $DIR_TYPE)" ]
+		if [ "$(ls -A -I ".gitignore" $DIR_TYPE)" ]
 		then
 			echo -e "\033[93m"
 			echo "  $PHASE $TYPE"
