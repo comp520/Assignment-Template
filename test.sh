@@ -2,14 +2,18 @@
 
 LOG=0
 VERBOSE=0
+VERIFY=1
 
-while getopts ":lv" opt; do
+while getopts ":lvc" opt; do
 	case $opt in
 		l)
 			LOG=1
 			;;
 		v)
 			VERBOSE=1
+			;;
+		c)
+			VERIFY=1
 			;;
 		\?)
 			echo "Invalid option: -$OPTARG" >&2
@@ -25,15 +29,21 @@ echo -e -n "\033[0m"
 
 if [ ! -f build.sh ]
 then
-	echo "Error: Missing build.sh script"
+	echo -e "\033[0;31m[Error]\033[0m: Missing build.sh script"
 	exit 1
 fi
 
 ./build.sh
 
+if [[ $? != 0 ]]
+then
+	echo -e "\033[0;31m[Error]\033[0m: Build failed"
+	exit 1
+fi
+
 if [ ! -f run.sh ]
 then
-	echo "Error: Missing run.sh script"
+	echo -e "\033[0;31m[Error]\033[0m: Missing run.sh script"
 	exit 1
 fi
 
@@ -74,7 +84,7 @@ do
 
 			COUNT=0
 			COUNT_PASSED=0
-			
+
 			TESTS=`find $DIR_TYPE -type f \( -name "*.go" \)`
 
 			for TEST in $TESTS
@@ -100,6 +110,9 @@ do
 					fi
 				fi
 
+				VERIFY_OUTPUT=
+				VERIFY_STATUS=
+
 				if [[ $PREV_SUCCESS == 1 ]]
 				then
 					OUTPUT=$(./run.sh $MODE $TEST 2>&1)
@@ -112,18 +125,35 @@ do
 					fi
 					if [[ $OUTPUT == $CONF_OUTPUT* && $STATUS == $CONF_STATUS ]]
 					then
-						((COUNT_PASSED++))
 						if [[ $VERBOSE == 1 ]]
 						then
 							STATUS_TEXT="pass"
 							STATUS_COLOUR="32"
+
 						else
 							STATUS_TEXT=""
+						fi
+
+						if [[ $VERIFY == 1 && -f $DIR_TYPE/verify.sh ]]
+						then
+							VERIFY_OUTPUT=$(./$DIR_TYPE/verify.sh $TEST 2>&1)
+							VERIFY_STATUS=${PIPESTATUS[0]}
+
+							if [[ $VERIFY_STATUS == 0 ]]
+							then
+								((COUNT_PASSED++))
+							else
+								STATUS_TEXT="pass"
+								STATUS_COLOUR="32"
+							fi
+						else
+							((COUNT_PASSED++))
 						fi
 					else
 						STATUS_TEXT="fail"
 						STATUS_COLOUR="31"
 					fi
+
 				else
 					STATUS_TEXT="failed previous"
 					STATUS_COLOUR="31"
@@ -134,6 +164,11 @@ do
 					echo
 					echo "$TEST: $OUTPUT" | tr -d '\n'
 					echo -n -e " \033[0;${STATUS_COLOUR}m[$STATUS_TEXT]\033[0m"
+					if [ ! -z "$VERIFY_OUTPUT" ]
+					then
+						echo -e -n "\n$VERIFY_OUTPUT" | sed 's/^/  /'
+					fi
+
 					if [ $LOG -eq 1 ]
 					then
 						echo "$TEST: $OUTPUT [$STATUS_TEXT]" >> ${PHASE_NAME}_${TYPE}.log
