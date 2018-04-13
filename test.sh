@@ -93,6 +93,11 @@ do
 
 				PREV_SUCCESS=1
 
+				if [[ $VERBOSE == 1 ]]
+				then
+					echo
+					echo -n "$TEST: "
+				fi
 				if [[ $TYPE == 'Invalid' && ! -z $PREV_MODE ]]
 				then
 					OUTPUT=$(./run.sh $PREV_MODE $TEST 2>&1)
@@ -161,8 +166,12 @@ do
 
 				if [ ! -z "$STATUS_TEXT" ]
 				then
-					echo
-					echo "$TEST: $OUTPUT" | tr -d '\n'
+					if [[ $VERBOSE == 0 ]]
+					then
+						echo
+						echo -n "$TEST: "
+					fi
+					echo "$OUTPUT" | tr -d '\n'
 					echo -n -e " \033[0;${STATUS_COLOUR}m[$STATUS_TEXT]\033[0m"
 					if [ ! -z "$VERIFY_OUTPUT" ]
 					then
