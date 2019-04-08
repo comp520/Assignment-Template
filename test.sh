@@ -172,9 +172,10 @@ do
 						echo -n "$TEST: "
 					fi
 					echo "$OUTPUT" | tr -d '\n'
-					echo -n -e " \033[0;${STATUS_COLOUR}m[$STATUS_TEXT]\033[0m"
-					if [ ! -z "$VERIFY_OUTPUT" ]
+					if [ -z "$VERIFY_OUTPUT" ]
 					then
+						echo -n -e " \033[0;${STATUS_COLOUR}m[$STATUS_TEXT]\033[0m"
+					else
 						echo -e -n "\n$VERIFY_OUTPUT" | sed 's/^/  /'
 					fi
 
