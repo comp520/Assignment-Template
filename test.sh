@@ -72,7 +72,7 @@ do
 			CONF_OUTPUT="OK"
 		else
 			CONF_STATUS=1
-			CONF_OUTPUT="Error: "
+			CONF_OUTPUT="Error:"
 		fi
 
 		if [ "$(ls -A -I ".gitignore" $DIR_TYPE)" ]
